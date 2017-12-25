@@ -3,7 +3,7 @@
 namespace Fastero\Router\Exception;
 
 
-class RouteException extends \RuntimeException
+class RouterException extends \RuntimeException
 {
 
 }
