@@ -10,29 +10,34 @@ namespace Fastero\Router\PathHandler;
 
 
 use Fastero\Router\Exception\MatcherException;
-use Fastero\Router\Exception\ParseException;
 
 class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
 {
+
+    const PARAMETER_NAME_LETTERS = [
+        'a' => true, 'b' => true, 'c' => true, 'd' => true, 'e' => true, 'f' => true, 'g' => true, 'h' => true, 'i' => true,
+        'j' => true, 'k' => true, 'l' => true, 'm' => true, 'n' => true, 'o' => true, 'p' => true, 'q' => true, 'r' => true,
+        's' => true, 't' => true, 'u' => true, 'v' => true, 'w' => true, 'x' => true, 'y' => true, 'z' => true, 'A' => true,
+        'B' => true, 'C' => true, 'D' => true, 'E' => true, 'F' => true, 'G' => true, 'H' => true, 'I' => true, 'J' => true,
+        'K' => true, 'L' => true, 'M' => true, 'N' => true, 'O' => true, 'P' => true, 'Q' => true, 'R' => true, 'S' => true,
+        'T' => true, 'U' => true, 'V' => true, 'W' => true, 'X' => true, 'Y' => true, 'Z' => true, '_' => true,
+        0 => false, 1 => false, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false, 7 => false, 8 => false, 9 => false,
+    ];
+
     /**
      * @var SimplePathGenerator
      */
     protected $pathGenerator;
-    /**
-     * @var Regex
-     */
-    protected $regexMatcher;
+
     protected $compiledRegex;
 
-    public function __construct($pathGenerator = null, $regexMatcher = null) {
+    public function __construct($pathGenerator = null) {
         $this->pathGenerator = $pathGenerator ?? new SimplePathGenerator();
-        $this->regexMatcher = $regexMatcher ?? new Regex();
     }
 
     public function setOptions(array $options) {
 
         parent::setOptions($options);
-        $this->pathGenerator->setOptions(['reverse'=>['path'=>$this->ruleData['full']]]);
         $this->compiledRegex = null;
     }
 
@@ -47,24 +52,68 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
             $this->compile();
         }
 
-        return $this->regexMatcher->match($path);
+
+        return $this->processRegex($path);
     }
+
+
+    protected function processRegex($path)
+    {
+        /**
+         * if there are urlencoded slashes in the path they could cause a problems.
+         * So replace them with something unique so after rawurldecode we can distinguish
+         * actual slashes from those being encoded.
+         */
+
+        $slashPlaceholder = null;
+        if(strpos($path,'%2F')){
+            $i = 0;
+            do{
+                $slashPlaceholder = 's42' . $i;
+                $i++;
+
+                $isUnique = strpos($path,$slashPlaceholder) === false;
+                $isUnique = $isUnique && strpos($this->compiledRegex, $slashPlaceholder)  === false;
+
+            } while(!$isUnique);
+            $path = str_replace('%2F',$slashPlaceholder,$path);
+        }
+
+        $path = rawurldecode($path);
+
+        $regex = "(^" . $this->compiledRegex . "$)";
+
+
+        if(preg_match($regex,$path, $matches)){
+            $resultParams = [];
+            foreach ($matches as $paramName => $paramValue) {
+                if(!is_int($paramName) && $paramValue !== ''){
+                    if(!is_null($slashPlaceholder)){
+                        $paramValue = str_replace($slashPlaceholder, '/', $paramValue);
+                    }
+                    $resultParams[$paramName] = $paramValue;
+                }
+            }
+            return $resultParams;
+        }else{
+            return null;
+        }
+    }
+
+
 
 
     public function makePath(array $urlParameters): string {
         return $this->ruleData['prefix'] . $this->pathGenerator->makePath($this->ruleData['rest']);
     }
-    protected function compile() {
-        $this->compiledRegex = $this->makeRegex($this->ruleData['rest']);
-        $this->regexMatcher->setOptions(['rule'=>[$this->ruleData['prefix'], $this->compiledRegex]]);
-    }
-    protected function makeRegex($path){
-        $startParameter = "(?<";
-        $endParameter = ">[^/]+)";
-        $startGroup = "(?:";
-        $endGroup = ")?";
 
+    protected function compile() {
+        $this->compiledRegex = $this->ruleData['prefix'] . $this->makeRegex($this->ruleData['rest']);
+    }
+
+    protected function makeRegex($path){
         $parsingName = false;
+        $firstLetter = false;
         $level = 0;
         $currentString = '';
 
@@ -81,16 +130,17 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
             }
 
             if ($parsingName) {
-                if (!$finishing && isset( SimplePathGenerator::PARAMETER_NAME_LETTERS[$char])
-                    && ($currentString != '' || SimplePathGenerator::PARAMETER_NAME_LETTERS[$char])) {
+                if (!$finishing && isset( self::PARAMETER_NAME_LETTERS[$char])
+                    && ($firstLetter || self::PARAMETER_NAME_LETTERS[$char])) {
                     $currentString .= $char;
                     continue;
-                } else if ($currentString != '') {
-                    $currentString .= $endParameter;
+                } else if ($firstLetter) {
+                    $currentString .= ">[^/]+)";
                     $parsingName = false;
                 } else {
-                    throw new ParseException(sprintf('Illegal character "%s" in the parameter name, position "%d"', $char, $i));
+                    throw new MatcherException(sprintf('Illegal character "%s" in the parameter name, position "%d"', $char, $i));
                 }
+                $firstLetter = false;
             }
 
             if($finishing) break;
@@ -104,16 +154,17 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
                 $nextChar = preg_quote($path[$i], '(');
                 $currentString .= $nextChar;
             } else if ($char == ':') {
-                $currentString .= $startParameter;
+                $currentString .= "(?<";
                 $parsingName = true;
+                $firstLetter = true;
 
             } else if ($char == '[') {
                 $level++;
-                $currentString .= $startGroup;
+                $currentString .= "(?:";
 
             } else if ($char == ']') {
                 $level --;
-                $currentString .= $endGroup;
+                $currentString .= ")?";
             } else {
                 $char = preg_quote($char, '(');
                 $currentString .= $char;
@@ -121,7 +172,7 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
         }
 
         if($level !== 0){
-            throw new MatcherException("number of open and close brackets doesn't match");
+            throw new MatcherException("Number of open and close brackets doesn't match");
         }
         return $currentString;
     }

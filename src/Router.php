@@ -11,10 +11,10 @@ use Fastero\Router\PathHandler\MatcherInterface;
 use Fastero\Router\Exception\ProcessRouterException;
 use Fastero\Router\Exception\RouterException;
 use Fastero\Router\Exception\RouterNotFoundException;
-use PHPUnit\Runner\Exception;
 
 class Router
 {
+
     /**
      * @var array
      * [
@@ -56,10 +56,9 @@ class Router
     public function findMatch($method, $uriPath, $queryParams = []){
 
         try{
-            $pathinfo = rawurldecode($uriPath);
             $matchRouteData = [];
             foreach ($this->routes as $routeName => $routeOptions){
-                $routeParams = $this->processRoute($routeOptions, $method, $pathinfo, $queryParams);
+                $routeParams = $this->processRoute($routeOptions, $method, $uriPath, $queryParams);
                 if(!is_null($routeParams)){
                     $matchRouteData['routeName'] = $routeName;
                     $matchRouteData['routeData'] = $routeParams;
@@ -74,7 +73,7 @@ class Router
         if(empty($this->routes)){
             throw new RouterException(sprintf('No routes found'));
         }else{
-            throw new RouterNotFoundException(sprintf('No routes found for path "%s", method "%s".', $pathinfo, $method));
+            throw new RouterNotFoundException(sprintf('No routes found for path "%s", method "%s".', $uriPath, $method));
         }
 
     }

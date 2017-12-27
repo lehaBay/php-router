@@ -3,7 +3,6 @@
 
 namespace Fastero\Router\PathHandler;
 use Fastero\Router\Exception\MatcherException;
-use PHPUnit\Runner\Exception;
 
 /**
  * if regex contains literals "(" or ")" they must be escaped
@@ -28,6 +27,7 @@ class Regex extends AbstractMatcher
 
     protected function processRegex($path)
     {
+        $path = rawurldecode($path);
         $regex = "(^" .preg_quote($this->ruleData['prefix']) . $this->ruleData['rest'] . "$)";
         if (!empty($this->options['regexModifiers'])) $regex = $regex . $this->options['regexModifiers'];
         try{
@@ -50,10 +50,8 @@ class Regex extends AbstractMatcher
         }
     }
 
-    public function makePath(array $urlParameters): string
-    {
-        // TODO: Implement makePath() method.
-    }
+
+
 
 }
 
