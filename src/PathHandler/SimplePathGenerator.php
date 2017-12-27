@@ -13,45 +13,27 @@ use Fastero\Router\Exception\GeneratorException;
 use Fastero\Router\Exception\MakePathException;
 use Fastero\Router\Exception\ParseException;
 
+/**
+ * format:
+ * section/:sectionName/[/filter[/id/:id][/name/:name]]
+ *
+ * [] - optional section, will be generated only if any parameter inside is set
+ * :id - parameter name - will be replaced with actual parameter if given.
+ * [a-zA-Z_0-9] characters are allowed, started with [a-zA-Z_]
+ *
+ * characters '[', ']', ':' - can be escaped with '\' if meant as literals
+ *
+ * examples:
+ * news/:id  - "id" is required parameter
+ *
+ * news[/:author[/:year\::moth\::day]  - 'author' and 'year' are optional
+ * results: news/alexey/1989:08:1987", "news/alexey", "news", but not "news/alexey/1989::"
+ *
+ */
+
 class SimplePathGenerator implements GeneratorInterface
 {
-    /**
-     * regPath
-     * format:
-     * section/:sectionName/[/filter[/id/:id][/name/:name]]
-     *
-     * [] - optional section, will be generated only if any parameter inside is set
-     * () - section is optional but if given all the parameters are required
-     * :id - parameter name - will be replaced with actual parameter if given.
-     * [a-zA-Z_0-9] characters are allowed, started with [a-zA-Z_]
-     *
-     * characters [,],: - can be escaped with '\' if meant as literals
-     *
-     * examples:
-     * news/:id  - "id" is required parameter
-     *
-     * news[/:author(/:year\::moth\::day)]  - 'author' and 'year' are optional
-     * but only latter one can be skipped so it can generate
-     * results: news/alexey/1989:08:1987", "news/alexey", "news", "news/1989:08:1987", but not "news/alexey/1989::"
-     *
-     * news(/:author/:year) - section after 'news' is optional but if 'author' or 'year' is given both must present
-     * results: news/alexey/1989", "news"
-     *
-     * news[/:author\(:year\year\)]- section after 'news' is optional but if 'author' or 'year' is given both must present
-     *
-     * new[/author/(:year[-:month])
-     * results: news/alexey(1989year)", "news"
-     * @var
-     */
-    public const PARAMETER_NAME_LETTERS = [
-        'a' => true, 'b' => true, 'c' => true, 'd' => true, 'e' => true, 'f' => true, 'g' => true, 'h' => true, 'i' => true,
-        'j' => true, 'k' => true, 'l' => true, 'm' => true, 'n' => true, 'o' => true, 'p' => true, 'q' => true, 'r' => true,
-        's' => true, 't' => true, 'u' => true, 'v' => true, 'w' => true, 'x' => true, 'y' => true, 'z' => true, 'A' => true,
-        'B' => true, 'C' => true, 'D' => true, 'E' => true, 'F' => true, 'G' => true, 'H' => true, 'I' => true, 'J' => true,
-        'K' => true, 'L' => true, 'M' => true, 'N' => true, 'O' => true, 'P' => true, 'Q' => true, 'R' => true, 'S' => true,
-        'T' => true, 'U' => true, 'V' => true, 'W' => true, 'X' => true, 'Y' => true, 'Z' => true, '_' => true,
-        0 => false, 1 => false, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false, 7 => false, 8 => false, 9 => false,
-];
+
 
     protected const PART_TYPE_GROUP = 'group';
     protected const PART_TYPE_LITERAL = 'literal';
@@ -110,8 +92,8 @@ class SimplePathGenerator implements GeneratorInterface
 
             if ($parsingName) {
 
-                if (!$finishing && isset( SimplePathGenerator::PARAMETER_NAME_LETTERS[$char])
-                    && ($currentString != '' || SimplePathGenerator::PARAMETER_NAME_LETTERS[$char])) {
+                if (!$finishing && isset( SectionPathMatcher::PARAMETER_NAME_LETTERS[$char])
+                    && ($currentString != '' || SectionPathMatcher::PARAMETER_NAME_LETTERS[$char])) {
                     $currentString .= $char;
                     continue;
                 } else if ($currentString != '') {
