@@ -5,9 +5,8 @@ namespace Fastero\Router\PathHandler;
 use Fastero\Router\Exception\MatcherException;
 
 /**
- * if regex contains literals "(" or ")" they must be escaped
  * Class Regex
- * @package Fastero\Router\PathHandler
+ * @package Fastero\Router
  */
 class Regex extends AbstractMatcher
 {
@@ -32,12 +31,12 @@ class Regex extends AbstractMatcher
         if (!empty($this->options['regexModifiers'])) $regex = $regex . $this->options['regexModifiers'];
         try{
 
-            $regRes = preg_match($regex,$path, $matches);
+            $match = (1 === preg_match($regex,$path, $matches));
         }catch (\Exception $exception){
             throw new MatcherException(sprintf('Error parsing matching regex "%s", message: "%s', $regex,$exception->getMessage()), 0, $exception);
         }
 
-        if($regRes){
+        if($match){
             $resultParams = [];
             foreach ($matches as $paramName => $paramValue) {
                 if(!is_int($paramName) && $paramValue !== ''){

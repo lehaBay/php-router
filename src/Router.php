@@ -46,23 +46,35 @@ class Router
         $this->routes = $routes;
     }
 
+    public function setMatchers($matchers){
 
+    }
     /**
      * @param $method - HTTP method (GET|HEAD|POST etc.)
      * @param $uriPath - URL excluding domain name and query string
      * @param array $queryParams all the params of query string
      * @return array - params of route that match or null
+     *
+     * return array structure:
+     * [
+     * 'name' => 'nameOfTheMatchedRoute',
+     * 'parameters' => [], - parsed parameters merged with defaults
+     * 'query' => [], - query parameters merged with defaults
+     * 'options' = [] - options that were set during route configuration
+     *
+     * ]
      */
-    public function findMatch($method, $uriPath, $queryParams = []){
+    public function match($method, $uriPath, $queryParams = []){
 
         try{
             $matchRouteData = [];
             foreach ($this->routes as $routeName => $routeOptions){
                 $routeParams = $this->processRoute($routeOptions, $method, $uriPath, $queryParams);
                 if(!is_null($routeParams)){
-                    $matchRouteData['routeName'] = $routeName;
-                    $matchRouteData['routeData'] = $routeParams;
-                    $matchRouteData['routeOptions'] = $routeOptions;
+                    $matchRouteData['name'] = $routeName;
+                    $matchRouteData['parameters'] = $routeParams['parameters'];
+                    $matchRouteData['query'] = $routeParams['query'];
+                    $matchRouteData['options'] = $routeOptions;
                     return $matchRouteData;
                 }
             }
@@ -153,22 +165,38 @@ class Router
 
     /**
      * @param $query
+     * @param $routeOptions
      * @return array|null - array of accepted query parameters or null if validation failed
      */
     protected function processQuery($query, $routeOptions){
         $queryConfig = $routeOptions['query'] ?? [];
 
-        if(empty($queryConfig)){
-            return $query;
+        if(empty($queryConfig['parameters'])) {
+           return $query;
         }
-        /*if(!empty($queryConfig['parameters'])){
-            foreach ($queryConfig['parameters'] as $parameterName => $data){
 
+        $checkOrder = $queryConfig['strict_match'] ?? false ;
+        foreach ($queryConfig['parameters'] as $parameterName => $data){
+            if($checkOrder){
+                next($query);
+                $queryParameterName = key($query);
+                if(is_null($queryParameterName)){
+                    return null;
+                }
+                if($parameterName != $queryParameterName){
+                    return null;
+                }
             }
-        }*/
-        //TODO: validate query and everything
 
-        return null;
+            $required = $data['required'] ?? false;
+            if($required && !isset($query[$parameterName])){
+                return null;
+            }
+        }
+
+
+
+        return $query;
 
     }
 
@@ -199,15 +227,39 @@ class Router
         $allParams = $this->mergeRouteDefaultParams($pathParams,$routeOptions);
         $validations = $routeOptions['validate'] ?? [];
 
-        foreach ($validations as $paramName => $regex){
+        foreach ($validations as $paramName => $rule){
             if(isset($allParams[$paramName])){
                 $value = $allParams[$paramName];
-                if(!preg_match($regex, $value)){
+                if(!$this->isValidParam($rule, $value)){
                     return null;
-                }
+                };
             }
         }
         return $allParams;
+    }
+
+    protected function isValidParam($rule, $value){
+        $valid = true;
+        if(is_array($rule) and !empty($rule)){
+            $callable = $rule['callback'] ?? null;
+            $params = $rule['params'] ?? [];
+            if(!is_null($callable) && is_callable($callable)){
+                $valid =  call_user_func_array($callable,[$value + $params]);
+            }else if(!is_null($callable)){
+                throw new RouterException('Validation rule contains callback but it isn\'t callable');
+            }else{
+                throw new RouterException('Validation rule is incorrect');
+            }
+        }else if (!empty($rule)){
+            try {
+                $regex = "(^" . $rule . "$)";
+                $valid = (1 === preg_match($regex, $value));
+            }catch (\Exception $exception){
+                throw new RouterException(sprintf('Error parsing validation regex "%s", message: "%s', $regex,$exception->getMessage()), 0, $exception);
+            }
+        }
+
+        return $valid;
     }
 
     protected function mergeRouteDefaultParams($pathParams, $routeOptions){
