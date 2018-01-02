@@ -32,6 +32,21 @@ class Router
      *    class: ClassName::class,
      *    method: 'run'
      *  ]
+     * validate - array where keys are parameter names and values are regex to validate against or array containing 'callback' key
+     * e.g. ["name" => "[a-zA-Z]+", "id" => "[0-9]+"] or ["id" => ['callback' => 'NumberValidator::isInt' ]]
+     * - defaults - default values for optional elements. key - name of parameter, value is value. It can be
+     * also used to pass some additional parameters;
+     * - query - settings for query parameters
+     * => [
+     * parameters = [
+     *  'param1_name' => ['required' => true, 'validate' =>'[0-9]+', default => '1'],
+     *  'param2_name' => ['required' => true], //no validation
+     *  'param3_name' => [], //required=false by default, no validation
+     *  ],
+     *  'strict_match' => true, //order of params will be checked and no other parameters accepted. FALSE by default
+     *  'strict_generate' => true, //order of params will preserved and params will be limited by those specified in the parameters section
+     *
+     * ]
      */
     protected $routes;
 
@@ -175,10 +190,10 @@ class Router
            return $query;
         }
 
-        $checkOrder = $queryConfig['strict_match'] ?? false ;
-        foreach ($queryConfig['parameters'] as $parameterName => $data){
-            if($checkOrder){
-                next($query);
+        $strictMatch = $queryConfig['strict_match'] ?? false;
+        foreach ($queryConfig['parameters'] as $parameterName => $validationData){
+            //check params order
+            if($strictMatch){
                 $queryParameterName = key($query);
                 if(is_null($queryParameterName)){
                     return null;
@@ -186,14 +201,27 @@ class Router
                 if($parameterName != $queryParameterName){
                     return null;
                 }
+                next($query);
+            }
+            if(empty($validationData)) {
+                continue;
             }
 
-            $required = $data['required'] ?? false;
+            $required = $validationData['required'] ?? false;
             if($required && !isset($query[$parameterName])){
                 return null;
             }
+            if(isset($validationData['validate'])
+                && isset($query[$parameterName])
+                && !$this->isValidParam($validationData['validate'],$query[$parameterName])){
+                return null;
+            }
+
         }
 
+        if($strictMatch and !is_null(key($query))){
+            return null; //if query has extra params and strict mode is enabled
+        }
 
 
         return $query;
@@ -203,12 +231,20 @@ class Router
 
 
     protected function methodMatch($methodToCheck, $routeOptions){
-        $methods = $routeOptions['methods'] ?? [];
 
-        if(empty($methods)){
+
+        if(empty($routeOptions['method'])){
             return true;
+        }else if(is_array($routeOptions['method'])){
+            $methods = $routeOptions['method'];
+        }else{
+            $methods = [$routeOptions['method']];
         }
+
+        $methodToCheck = strtoupper($methodToCheck);
+
         foreach ($methods as $method){
+            $method = strtoupper($method);
             if($method == $methodToCheck) return true;
             if($method == "GET" and $methodToCheck = "HEAD") return true;
         }
@@ -230,7 +266,7 @@ class Router
         foreach ($validations as $paramName => $rule){
             if(isset($allParams[$paramName])){
                 $value = $allParams[$paramName];
-                if(!$this->isValidParam($rule, $value)){
+                if(empty($rule) || !$this->isValidParam($rule, $value)){
                     return null;
                 };
             }
@@ -240,7 +276,7 @@ class Router
 
     protected function isValidParam($rule, $value){
         $valid = true;
-        if(is_array($rule) and !empty($rule)){
+        if(is_array($rule)){
             $callable = $rule['callback'] ?? null;
             $params = $rule['params'] ?? [];
             if(!is_null($callable) && is_callable($callable)){
@@ -250,7 +286,7 @@ class Router
             }else{
                 throw new RouterException('Validation rule is incorrect');
             }
-        }else if (!empty($rule)){
+        }else {
             try {
                 $regex = "(^" . $rule . "$)";
                 $valid = (1 === preg_match($regex, $value));
