@@ -22,7 +22,7 @@ class RouterParamValidationTest extends TestCase
     }
 
     public function setUp() {
-        MatcherMatch::$returnParams = []; //just make sure
+        MatcherMatch::$returnParams = [];
     }
 
     public function testMatchValidationNoRules(){

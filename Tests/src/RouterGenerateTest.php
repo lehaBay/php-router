@@ -10,13 +10,10 @@ namespace Fastero\Router\Tests;
 
 
 use Fastero\Router\Exception\GeneratorException;
-use Fastero\Router\Exception\RouterException;
-use Fastero\Router\Exception\RouterNotFoundException;
-use Fastero\Router\PathHandler\Regex;
 use Fastero\Router\Router;
 use Fastero\Router\Tests\Fixtures\MatcherGenerator;
 use Fastero\Router\Tests\Fixtures\MatcherMatch;
-use Fastero\Router\Tests\Fixtures\MatcherNotMatch;
+
 use PHPUnit\Framework\TestCase;
 
 class RouterGenerateTest extends TestCase
@@ -26,7 +23,7 @@ class RouterGenerateTest extends TestCase
     }
 
     public function setUp() {
-        MatcherMatch::$returnParams = []; //just make sure
+        MatcherMatch::$returnParams = [];
     }
 
 
@@ -36,7 +33,6 @@ class RouterGenerateTest extends TestCase
                 'type' => MatcherGenerator::class,
             ]
         ];
-        //$mockedClass::expects($this->once());
         $data = ['name' => "alexey", 'age'=> 30];
         $router = new Router($routes);
         $path = $router->makePath('route1',$data);
@@ -49,7 +45,6 @@ class RouterGenerateTest extends TestCase
                 'type' => MatcherGenerator::class,
             ]
         ];
-        //$mockedClass::expects($this->once());
         $data = ['name' => "alexey", 'age'=> 30];
         $router = new Router($routes);
         $path = $router->makePath('route1',$data,['gh' => 1, 'w' => 'looch']);
@@ -80,7 +75,6 @@ class RouterGenerateTest extends TestCase
                 ]
             ]
         ];
-        //$mockedClass::expects($this->once());
         $data = ['name' => "alexey", 'age'=> 30];
         $router = new Router($routes);
         $path = $router->makePath('route1',$data,[], false);
@@ -96,10 +90,9 @@ class RouterGenerateTest extends TestCase
                 'type' => MatcherGenerator::class,
             ]
         ];
-        //$mockedClass::expects($this->once());
         $data = ['name' => "alexey", 'age'=> 30];
         $router = new Router($routes);
-        $path = $router->makePath('route2',$data);
+        $router->makePath('route2',$data);
     }
     public function testMakePathMatcherDoesNotSupportGenerationNoGeneratorProvided() {
         $this->expectException(GeneratorException::class);

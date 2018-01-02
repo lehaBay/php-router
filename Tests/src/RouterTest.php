@@ -11,7 +11,6 @@ namespace Fastero\Router\Tests;
 
 use Fastero\Router\Exception\RouterException;
 use Fastero\Router\Exception\RouterNotFoundException;
-use Fastero\Router\PathHandler\Regex;
 use Fastero\Router\Router;
 use Fastero\Router\Tests\Fixtures\MatcherMatch;
 use Fastero\Router\Tests\Fixtures\MatcherNotMatch;
@@ -24,7 +23,7 @@ class RouterTest extends TestCase
     }
 
     public function setUp() {
-        MatcherMatch::$returnParams = []; //just make sure
+        MatcherMatch::$returnParams = [];
     }
 
 

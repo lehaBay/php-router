@@ -22,7 +22,7 @@ class RouterQueryValidationTest extends TestCase
     }
 
     public function setUp() {
-        MatcherMatch::$returnParams = []; //just make sure
+        MatcherMatch::$returnParams = [];
     }
 
     public function testMatchValidationQueryValid(){
@@ -125,7 +125,7 @@ class RouterQueryValidationTest extends TestCase
 
         MatcherMatch::$returnParams = [];
         $router = new Router($config);
-        $match = $router->match("GET","",['name' => 'lxf', 'size' => '25.5']);
+        $router->match("GET","",['name' => 'lxf', 'size' => '25.5']);
 
     }
 
@@ -144,7 +144,6 @@ class RouterQueryValidationTest extends TestCase
             ],
 
         ];
-
 
         MatcherMatch::$returnParams = [];
         $router = new Router($config);
@@ -167,7 +166,6 @@ class RouterQueryValidationTest extends TestCase
             ],
 
         ];
-
 
         MatcherMatch::$returnParams = [];
         $router = new Router($config);
