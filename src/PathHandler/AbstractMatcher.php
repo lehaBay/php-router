@@ -10,9 +10,7 @@ abstract class AbstractMatcher implements MatcherInterface
 {
 
     protected $options;
-    protected $method;
     protected $ruleData;
-    protected $result = [];
 
     /**
      * @param array $options - options can be different for different adapters but mostly they are the same:
@@ -57,12 +55,6 @@ abstract class AbstractMatcher implements MatcherInterface
         }else{
             return true;
         }
-    }
-
-    public function reset()
-    {
-        $this->options = [];
-        $this->result = [];
     }
 
 }

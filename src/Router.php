@@ -61,9 +61,6 @@ class Router
         $this->routes = $routes;
     }
 
-    public function setMatchers($matchers){
-
-    }
     /**
      * @param $method - HTTP method (GET|HEAD|POST etc.)
      * @param $uriPath - URL excluding domain name and query string
@@ -94,7 +91,7 @@ class Router
                 }
             }
         } catch (\Exception $exception){
-            throw new ProcessRouterException(sprintf('Error occurred during processing "%s" route', $routeName), 0, $exception);
+            throw new ProcessRouterException(sprintf('Error occurred during processing "%s" route: "%s"', $routeName, $exception->getMessage()), 0, $exception);
         }
 
         if(empty($this->routes)){
@@ -156,7 +153,6 @@ class Router
         $routeProcessor = $this->routeProcessors[$processorClass] ??
             $this->routeProcessors[$processorClass] = new $processorClass;
 
-        $routeProcessor->reset();
         $routeProcessor->setOptions($routeOptions);
 
 
@@ -278,9 +274,9 @@ class Router
         $valid = true;
         if(is_array($rule)){
             $callable = $rule['callback'] ?? null;
-            $params = $rule['params'] ?? [];
+            $params = $rule['parameters'] ?? [];
             if(!is_null($callable) && is_callable($callable)){
-                $valid =  call_user_func_array($callable,[$value + $params]);
+                $valid =  call_user_func_array($callable,  array_merge([$value], $params));
             }else if(!is_null($callable)){
                 throw new RouterException('Validation rule contains callback but it isn\'t callable');
             }else{

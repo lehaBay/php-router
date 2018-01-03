@@ -38,6 +38,7 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
     public function setOptions(array $options) {
 
         parent::setOptions($options);
+        $this->pathGenerator->setOptions(['reverse' => ['path' => $this->ruleData['full']]]);
         $this->compiledRegex = null;
     }
 
@@ -104,7 +105,7 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
 
 
     public function makePath(array $urlParameters): string {
-        return $this->ruleData['prefix'] . $this->pathGenerator->makePath($this->ruleData['rest']);
+        return $this->pathGenerator->makePath($urlParameters);
     }
 
     protected function compile() {
@@ -129,18 +130,19 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
                 $char = null;
             }
 
-            if ($parsingName) {
-                if (!$finishing && isset( self::PARAMETER_NAME_LETTERS[$char])
-                    && ($firstLetter || self::PARAMETER_NAME_LETTERS[$char])) {
-                    $currentString .= $char;
-                    continue;
-                } else if ($firstLetter) {
-                    $currentString .= ">[^/]+)";
-                    $parsingName = false;
-                } else {
+            if ($parsingName ) {
+                if($firstLetter && !(self::PARAMETER_NAME_LETTERS[$char] ?? false)){
                     throw new MatcherException(sprintf('Illegal character "%s" in the parameter name, position "%d"', $char, $i));
                 }
-                $firstLetter = false;
+                if (!$finishing && isset( self::PARAMETER_NAME_LETTERS[$char])) {
+                    $currentString .= $char;
+                    $firstLetter = false;
+                    continue;
+                } else {
+                    $currentString .= ">[^/]+)";
+                    $parsingName = false;
+                }
+
             }
 
             if($finishing) break;

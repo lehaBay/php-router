@@ -18,12 +18,4 @@ interface MatcherInterface
      */
     public function match($path);
 
-
-    /**
-     * reset matcher so it could be used again with different options
-     * @return null
-     */
-    public function reset();
-
-
 }
