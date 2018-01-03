@@ -100,7 +100,6 @@ class RouterTest extends TestCase
             'route1' => [
                 "type" => MatcherNotMatch::class,
                 "rule" => [],
-                "method" => ["post"],
             ],
         ];
         $this->expectException(RouterNotFoundException::class);
@@ -108,4 +107,6 @@ class RouterTest extends TestCase
         $router = new Router($config);
         $router->match("GET", "noop", []);
     }
+
+
 }

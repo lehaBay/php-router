@@ -81,6 +81,35 @@ class RouterGenerateTest extends TestCase
         $this->assertSame('{"name":"alexey","age":30}', $path);
     }
 
+    public function testMakePathSameRouteSecondTime() {
+        $routes = [
+            'route1' => [
+                'type' => MatcherGenerator::class,
+
+            ],
+
+        ];
+
+        $router = new Router($routes);
+        $router->makePath('route1',['name' => "alexey", 'age'=> 30],[]);
+        $path = $router->makePath('route1',['some' => 'data'],[]);
+        $this->assertSame('{"some":"data"}', $path);
+    }
+
+    public function testMakePathGeneratorClassDoesNotExist() {
+        $this->expectException(GeneratorException::class);
+        $this->expectExceptionMessage('Unknown route type "someClassNameThatDoesNotExist" for route "route1".');
+        $routes = [
+            'route1' => [
+                'type' => 'someClassNameThatDoesNotExist',
+            ],
+        ];
+
+        $router = new Router($routes);
+        $router->makePath('route1',['name' => "alexey", 'age'=> 30],[]);
+
+    }
+
 
     public function testMakePathWrongRoute() {
         $this->expectException(GeneratorException::class);
@@ -94,6 +123,7 @@ class RouterGenerateTest extends TestCase
         $router = new Router($routes);
         $router->makePath('route2',$data);
     }
+
     public function testMakePathMatcherDoesNotSupportGenerationNoGeneratorProvided() {
         $this->expectException(GeneratorException::class);
         $this->expectExceptionMessage('"Fastero\Router\Tests\Fixtures\MatcherMatch" must implement "Fastero\Router\PathHandler\GeneratorInterface" interface.');

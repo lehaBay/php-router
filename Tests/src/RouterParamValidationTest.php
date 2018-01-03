@@ -9,6 +9,7 @@
 namespace Fastero\Router\Tests;
 
 
+use Fastero\Router\Exception\RouterException;
 use Fastero\Router\Exception\RouterNotFoundException;
 use Fastero\Router\Router;
 use Fastero\Router\Tests\Fixtures\MatcherMatch;
@@ -140,4 +141,141 @@ class RouterParamValidationTest extends TestCase
         $router->match("GET","",[]);
     }
 
+    public function testMatchValidationParamsInvalidRegex(){
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage('Error occurred during processing "route1" route: "Error parsing validation regex "(^[a-z$)", message: "preg_match(): Compilation failed: missing terminating ] for character class at offset 6"');
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'validate' => [
+                    'someparam' => "[a-z",
+                ]
+            ],
+        ];
+        MatcherMatch::$returnParams = ['someparam' => 'somevalue'];
+        $router = new Router($config);
+        $router->match("GET","",[]);
+
+    }
+
+
+    public function testMatchValidationParamsCallableNotValid(){
+        $this->expectException(RouterNotFoundException::class);
+        $this->expectExceptionMessage("No routes found for path \"\", method \"GET\".");
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'validate' => [
+                    'name' => ['callback' => 'Fastero\Router\Tests\Fixtures\someValidationReturnFalse'],
+                ]
+            ],
+        ];
+        MatcherMatch::$returnParams = ['name' => 'alexey', 'age' => '30'];
+        $router = new Router($config);
+        $router->match("GET","",[]);
+    }
+    public function testMatchValidationParamsCallableValid(){
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'validate' => [
+                    'name' => ['callback' => 'Fastero\Router\Tests\Fixtures\someValidationReturnTrue'],
+                ]
+            ],
+        ];
+        MatcherMatch::$returnParams = ['name' => 'alexey', 'age' => '30'];
+        $router = new Router($config);
+        $result = $router->match("GET","",[]);
+        $this->assertSame('route1',$result['name']);
+    }
+
+    public function testMatchValidationParamsCallableCheckIfTrueValid(){
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'validate' => [
+                    'isTrue' => ['callback' => 'Fastero\Router\Tests\Fixtures\someValidationReturnParamEqualValue', 'parameters' => [true]],
+                ]
+            ],
+        ];
+        MatcherMatch::$returnParams = ['isTrue' => true];
+        $router = new Router($config);
+        $result = $router->match("GET","",[]);
+        $this->assertSame('route1',$result['name']);
+    }
+    public function testMatchValidationParamsCallableCheckIfFalseValid(){
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'validate' => [
+                    'isFalse' => ['callback' => 'Fastero\Router\Tests\Fixtures\someValidationReturnParamEqualValue', 'parameters' => [false]],
+                ]
+            ],
+        ];
+        MatcherMatch::$returnParams = ['isFalse' => false];
+        $router = new Router($config);
+        $result = $router->match("GET","",[]);
+        $this->assertSame('route1',$result['name']);
+    }
+
+
+    public function testMatchValidationParamsCallableCheckIfFalseNotValid(){
+        $this->expectException(RouterNotFoundException::class);
+        $this->expectExceptionMessage("No routes found for path \"\", method \"GET\".");
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'validate' => [
+                    'isFalse' => ['callback' => 'Fastero\Router\Tests\Fixtures\someValidationReturnParamEqualValue', 'parameters' => [false]],
+                ]
+            ],
+        ];
+        MatcherMatch::$returnParams = ['isFalse' => true];
+        $router = new Router($config);
+        $router->match("GET","",[]);
+
+    }
+
+
+    public function testMatchValidationParamsCallableInvalidCallback(){
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage('Error occurred during processing "route1" route: "Validation rule contains callback but it isn\'t callable"');
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'validate' => [
+                    'someparam' => ['callback' => 'FunctionDoesNotExist'],
+                ]
+            ],
+        ];
+        MatcherMatch::$returnParams = ['someparam' => 'somevalue'];
+        $router = new Router($config);
+        $router->match("GET","",[]);
+
+    }
+
+    public function testMatchValidationParamsInvalidValidationRule(){
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage('Error occurred during processing "route1" route: "Validation rule is incorrect"');
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'validate' => [
+                    'someparam' => ['thereisnocallbackgiven'],
+                ]
+            ],
+        ];
+        MatcherMatch::$returnParams = ['someparam' => 'somevalue'];
+        $router = new Router($config);
+        $router->match("GET","",[]);
+
+    }
 }

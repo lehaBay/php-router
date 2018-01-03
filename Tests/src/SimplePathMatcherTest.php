@@ -13,7 +13,7 @@ use Fastero\Router\Exception\MatcherException;
 use Fastero\Router\PathHandler\SectionPathMatcher;
 use PHPUnit\Framework\TestCase;
 
-class SimpleClassMatcherTest extends TestCase
+class SimplePathMatcherTest extends TestCase
 {
 
 
@@ -182,6 +182,19 @@ class SimpleClassMatcherTest extends TestCase
         $result = $matcher->match('ne%26ws/5der/(author=ale%29%26%60~_-%2Fxey%5B%29)');
         $this->assertEquals(['_id52_' => '5der', 'author_name' => 'ale)&`~_-/xey[)'], $result);
     }
+    public function testMatchRegexPathContainsEscapedChars() {
+        $routeOptions = [
+            "rule" => ['news/', '\[:_id52\]'],
+        ];
+
+        $matcher = new SectionPathMatcher();
+        $matcher->setOptions($routeOptions);
+
+        $result = $matcher->match('news/[5der]');
+        $this->assertEquals(['_id52' => '5der'], $result);
+    }
+
+
     public function testMatchMissingCloseBracket() {
         $routeOptions = [
             "rule" => ['news/', ':_id52_[/optional/:some'],
@@ -208,5 +221,52 @@ class SimpleClassMatcherTest extends TestCase
 
     }
 
+    public function testMatchWrongParameterFirstLetter() {
+        $routeOptions = [
+            "rule" => ['news/', ':_id52_/optional/:1some'],
+        ];
+        $this->expectException(MatcherException::class);
+        $this->expectExceptionMessage('Illegal character "1" in the parameter name, position "18"');
+        $matcher = new SectionPathMatcher();
+        $matcher->setOptions($routeOptions);
+
+        $matcher->match('news/5der');
+
+    }
+    public function testMatchParameterStartedAtTheVeryEndOfRegex() {
+        $routeOptions = [
+            "rule" => ['news/', ':_id52_/optional/:'],
+        ];
+        $this->expectException(MatcherException::class);
+        $this->expectExceptionMessage('Illegal character "" in the parameter name, position "18"');
+        $matcher = new SectionPathMatcher();
+        $matcher->setOptions($routeOptions);
+
+        $matcher->match('news/5der');
+
+    }
+    public function testMatchEscapeCharacterAtTheVeryEndOfPath() {
+        $routeOptions = [
+            "rule" => ['news/', ':_id52_/optional/\\'],
+        ];
+        $this->expectException(MatcherException::class);
+        $this->expectExceptionMessage('Escaping character "\" at the end of the string"');
+        $matcher = new SectionPathMatcher();
+        $matcher->setOptions($routeOptions);
+
+        $matcher->match('news/5der');
+
+    }
+    public function testMakePath() {
+        $routeOptions = [
+            "rule" => ['news/', ':_id52_/optional/:param'],
+        ];
+
+        $matcher = new SectionPathMatcher();
+        $matcher->setOptions($routeOptions);
+        $path = $matcher->makePath(['_id52_'=> '52', 'param'=> 'some']);
+        $this->assertSame('news/52/optional/some', $path);
+
+    }
 
 }

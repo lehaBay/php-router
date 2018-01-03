@@ -172,4 +172,52 @@ class RouterQueryValidationTest extends TestCase
         $match = $router->match("GET","",['size' => '25.5', 'name' => 'lxf']);
         $this->assertEquals(['size' => '25.5', 'name' => 'lxf'], $match['query']);
     }
+
+    public function testMatchValidationQueryStrictNotEnoughParameters(){
+        $this->expectException(RouterNotFoundException::class);
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'query' => [
+                    'parameters' =>[
+                        'size' => ['required' => true, 'validate' => "\d+(\.\d+)?"],
+                        'name' => ['required' => true, 'validate' => "\w+"]
+                    ],
+
+                    'strict_match' => true,
+                ]
+            ],
+
+        ];
+
+
+        MatcherMatch::$returnParams = [];
+        $router = new Router($config);
+        $router->match("GET","",['size' => '25.5']);
+    }
+
+    public function testMatchValidationQueryRequiredIsMissing(){
+        $this->expectException(RouterNotFoundException::class);
+        $config = [
+            'route1' => [
+                "type" => MatcherMatch::class,
+                "rule" => [],
+                'query' => [
+                    'parameters' =>[
+                        'size' => ['required' => true, 'validate' => "\d+(\.\d+)?"],
+                        'name' => ['required' => true, 'validate' => "\w+"]
+                    ],
+
+                    'strict_match' => false,
+                ]
+            ],
+
+        ];
+
+
+        MatcherMatch::$returnParams = [];
+        $router = new Router($config);
+        $router->match("GET","",['size' => '25.5', 'go' => 'to']);
+    }
 }

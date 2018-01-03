@@ -1,6 +1,7 @@
 <?php
 namespace Fastero\Router\Tests\Fixtures;
 
+use Fastero\Router\PathHandler\AbstractMatcher;
 use Fastero\Router\PathHandler\GeneratorInterface;
 use Fastero\Router\PathHandler\MatcherInterface;
 use function foo\func;
@@ -18,29 +19,28 @@ class MatcherGenerator implements MatcherInterface, GeneratorInterface{
     }
 
     public function setOptions(array $options) {
-        // TODO: Implement setOptions() method.
+
     }
 
     public function getOptions() {
-        // TODO: Implement getOptions() method.
+
     }
 
-    /**
-     * check if $path match against the rule supported by the concrete matcher and return array of
-     * parsed parameters if it matches or null otherwise
-     * @param $path - raw URL excluding domain name and query string
-     * @return array|null - params of route that match or null
-     */
+
     public function match($path) {
-        // TODO: Implement match() method.
+
     }
 
-    /**
-     * reset matcher so it could be used again with different options
-     * @return null
-     */
-    public function reset() {
-        // TODO: Implement reset() method.
+
+}
+
+class AbstractMatcherImplementation extends AbstractMatcher {
+
+    public function getRule(){
+        return $this->ruleData;
+    }
+    public function match($path) {
+        //do nothing
     }
 }
 class MatcherMatch implements MatcherInterface
@@ -53,7 +53,7 @@ class MatcherMatch implements MatcherInterface
 
 public function setOptions(array $options) {}
 public function getOptions() {}
-public function reset() {}
+
 }
 class MatcherNotMatch implements MatcherInterface
 {
@@ -75,6 +75,6 @@ function someValidationReturnFalse($value){
     return false;
 }
 
-function someValidationReturnParam($value, $returnMe){
-    return $returnMe;
+function someValidationReturnParamEqualValue($value, $returnMe){
+    return $value == $returnMe;
 }
