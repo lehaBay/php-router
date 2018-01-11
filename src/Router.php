@@ -114,17 +114,17 @@ class Router
             $routerParameters = $parameters;
         }
 
-        $processorClass = $routeOptions['type'];
+        $generatorClass = $routeOptions['reverse']['generator'] ?? $routeOptions['type'];
         if(empty($this->routeGenerators[$routeName])){
 
-            if(!class_exists($processorClass)){
-                throw new GeneratorException(sprintf('Unknown route type "%s" for route "%s".', $processorClass,$routeName));
+            if(!class_exists($generatorClass)){
+                throw new GeneratorException(sprintf('Unknown route type "%s" for route "%s".', $generatorClass,$routeName));
             }
             /** @var MatcherInterface $generator */
-            $generator = new $processorClass();
+            $generator = new $generatorClass();
 
             if (!$generator instanceof GeneratorInterface){
-                throw new GeneratorException(sprintf('Class  "%s" must implement "%s" interface.', $processorClass,GeneratorInterface::class));
+                throw new GeneratorException(sprintf('Class  "%s" must implement "%s" interface.', $generatorClass,GeneratorInterface::class));
             }
             $generator->setOptions($routeOptions);
             $this->routeGenerators[$routeName] = $generator;
