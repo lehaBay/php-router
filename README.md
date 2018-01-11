@@ -5,7 +5,7 @@
 
 Router is a very important part of (almost)any web application and as a 
 part of core it must have as less overhead as possible. That's what this 
-router is built for -- to be [extremely fast](#Why-is-it-fast?)
+router is built for -- to be [extremely fast](#why-is-it-fast)
 
 requires php 7.0 +
 # Install with **composer**
@@ -51,7 +51,7 @@ try{
 ```
 
 ```$routes``` array contain's route names as keys and configuration parameters array as value. 
-It's recommended to generate configuration using [Configurators](#Configurators) 
+It's recommended to generate configuration using [Configurators](#configurators) 
 
 ## Configurators
 Configurators are created to make configuration of your route easier 
@@ -112,12 +112,16 @@ instead of built in route handler generator.
 Set rules for query parameter
 
 
-Currently there are 3 configurators (src/Configuration) one per each [route type](#Route-types):
-* \Fastero\Router\Configuration\Literal - corresponding the [\Fastero\Router\PathHandler\Literal](#Literal)  route type
+Currently there are 3 configurators (src/Configuration) 
+one per each [route type](#route-types):
+* \Fastero\Router\Configuration\Literal 
+\- corresponding the [\Fastero\Router\PathHandler\Literal](#literal)  route type
 
-* \Fastero\Router\Configuration\Section - corresponding the [\Fastero\Router\PathHandler\Section](#Section)  route type
+* \Fastero\Router\Configuration\Section 
+\- corresponding the [\Fastero\Router\PathHandler\Section](#section)  route type
 
-* \Fastero\Router\Configuration\Regex - corresponding the [\Fastero\Router\PathHandler\Regex](#Regex)  route type
+* \Fastero\Router\Configuration\Regex 
+ \- corresponding the [\Fastero\Router\PathHandler\Regex](#regex)  route type
 
 All they have the same methods but slightly different signature for ::config() method. That's because
 Literal route type does not need any path pattern but static path only
