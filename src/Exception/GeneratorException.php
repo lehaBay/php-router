@@ -9,7 +9,7 @@
 namespace Fastero\Router\Exception;
 
 
-class GeneratorException extends  RouterException
+class GeneratorException extends RouterException
 {
 
 }

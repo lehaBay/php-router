@@ -30,7 +30,6 @@ use Fastero\Router\Exception\ParseException;
  * results: news/alexey/1989:08:1987", "news/alexey", "news", but not "news/alexey/1989::"
  *
  */
-
 class SectionPathGenerator implements GeneratorInterface
 {
 
@@ -84,15 +83,15 @@ class SectionPathGenerator implements GeneratorInterface
         while ($i <= $groupPathLength) {
             $i++;
             $finishing = ($i == $groupPathLength);
-            if(!$finishing){
+            if (!$finishing) {
                 $char = $groupPath[$i];
-            }else{
+            } else {
                 $char = null;
             }
 
             if ($parsingName) {
 
-                if (!$finishing && isset( SectionPathMatcher::PARAMETER_NAME_LETTERS[$char])
+                if (!$finishing && isset(SectionPathMatcher::PARAMETER_NAME_LETTERS[$char])
                     && ($currentString != '' || SectionPathMatcher::PARAMETER_NAME_LETTERS[$char])) {
                     $currentString .= $char;
                     continue;
@@ -111,7 +110,7 @@ class SectionPathGenerator implements GeneratorInterface
                 $parsingLiteral = false;
 
             }
-            if($finishing) break;
+            if ($finishing) break;
 
             if ($char == '\\') {
                 $i++;
@@ -177,9 +176,9 @@ class SectionPathGenerator implements GeneratorInterface
             }
         }
 
-        if ($hasAnyData || $root ) {
+        if ($hasAnyData || $root) {
             return $result;
-        } else{
+        } else {
             return '';
         }
     }

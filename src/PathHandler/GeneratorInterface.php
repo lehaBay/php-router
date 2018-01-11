@@ -13,6 +13,6 @@ interface GeneratorInterface
 {
     public function setOptions(array $options);
 
-    public function makePath(array $urlParameters):string;
+    public function makePath(array $urlParameters): string;
 
 }

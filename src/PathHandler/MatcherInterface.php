@@ -8,6 +8,7 @@ interface MatcherInterface
 {
 
     public function setOptions(array $options);
+
     public function getOptions();
 
     /**

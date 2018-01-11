@@ -19,7 +19,7 @@ class Section extends AbstractRouterGenerator
      * @param null $pattern - properly formatted url pattern
      * @return static
      */
-    public static function config($prefix, $pattern = null){
+    public static function config($prefix, $pattern = null) {
         $me = static::getInstance();
         $me->setPathRule($prefix, $pattern);
         return $me;

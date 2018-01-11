@@ -11,7 +11,6 @@ class Regex extends AbstractRouterGenerator
     protected $matcherClass = \Fastero\Router\PathHandler\Regex::class;
 
 
-
     /**
      * start creating route configuration. Must be finished with ->get()
      * @param $prefix - static path prefix, immutable part of the url or
@@ -20,7 +19,7 @@ class Regex extends AbstractRouterGenerator
      * @param null $pattern - properly formatted url pattern
      * @return static
      */
-    public static function config($prefix, $regex = null){
+    public static function config($prefix, $regex = null) {
         $me = static::getInstance();
         $me->setPathRule($prefix, $regex);
         return $me;

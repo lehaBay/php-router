@@ -15,7 +15,7 @@ class Literal extends AbstractRouterGenerator
      * @param $path - static url path
      * @return static
      */
-    public static function config($path){
+    public static function config($path) {
         $me = static::getInstance();
         $me->setPathRule($path);
         return $me;

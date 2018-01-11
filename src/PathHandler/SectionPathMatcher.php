@@ -49,7 +49,7 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
      * @return array|null - params of route that match or null
      */
     public function match($path) {
-        if(is_null($this->compiledRegex)){
+        if (is_null($this->compiledRegex)) {
             $this->compile();
         }
 
@@ -57,62 +57,11 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
         return $this->processRegex($path);
     }
 
-
-    protected function processRegex($path)
-    {
-        /**
-         * if there are urlencoded slashes in the path they could cause a problems.
-         * So replace them with something unique so after rawurldecode we can distinguish
-         * actual slashes from those being encoded.
-         */
-
-        $slashPlaceholder = null;
-        if(strpos($path,'%2F')){
-            $i = 0;
-            do{
-                $slashPlaceholder = 's42' . $i;
-                $i++;
-
-                $isUnique = strpos($path,$slashPlaceholder) === false;
-                $isUnique = $isUnique && strpos($this->compiledRegex, $slashPlaceholder)  === false;
-
-            } while(!$isUnique);
-            $path = str_replace('%2F',$slashPlaceholder,$path);
-        }
-
-        $path = rawurldecode($path);
-
-        $regex = "(^" . $this->compiledRegex . "$)";
-
-
-        if(preg_match($regex,$path, $matches)){
-            $resultParams = [];
-            foreach ($matches as $paramName => $paramValue) {
-                if(!is_int($paramName) && $paramValue !== ''){
-                    if(!is_null($slashPlaceholder)){
-                        $paramValue = str_replace($slashPlaceholder, '/', $paramValue);
-                    }
-                    $resultParams[$paramName] = $paramValue;
-                }
-            }
-            return $resultParams;
-        }else{
-            return null;
-        }
-    }
-
-
-
-
-    public function makePath(array $urlParameters): string {
-        return $this->pathGenerator->makePath($urlParameters);
-    }
-
     protected function compile() {
         $this->compiledRegex = $this->ruleData['prefix'] . $this->makeRegex($this->ruleData['rest']);
     }
 
-    protected function makeRegex($path){
+    protected function makeRegex($path) {
         $parsingName = false;
         $firstLetter = false;
         $level = 0;
@@ -124,17 +73,17 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
         while ($i <= $groupPathLength) {
             $i++;
             $finishing = ($i == $groupPathLength);
-            if(!$finishing){
+            if (!$finishing) {
                 $char = $path[$i];
-            }else{
+            } else {
                 $char = null;
             }
 
-            if ($parsingName ) {
-                if($firstLetter && !(self::PARAMETER_NAME_LETTERS[$char] ?? false)){
+            if ($parsingName) {
+                if ($firstLetter && !(self::PARAMETER_NAME_LETTERS[$char] ?? false)) {
                     throw new MatcherException(sprintf('Illegal character "%s" in the parameter name, position "%d"', $char, $i));
                 }
-                if (!$finishing && isset( self::PARAMETER_NAME_LETTERS[$char])) {
+                if (!$finishing && isset(self::PARAMETER_NAME_LETTERS[$char])) {
                     $currentString .= $char;
                     $firstLetter = false;
                     continue;
@@ -145,7 +94,7 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
 
             }
 
-            if($finishing) break;
+            if ($finishing) break;
 
             if ($char == '\\') {
                 $i++;
@@ -165,7 +114,7 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
                 $currentString .= "(?:";
 
             } else if ($char == ']') {
-                $level --;
+                $level--;
                 $currentString .= ")?";
             } else {
                 $char = preg_quote($char, '(');
@@ -173,10 +122,56 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
             }
         }
 
-        if($level !== 0){
+        if ($level !== 0) {
             throw new MatcherException("Number of open and close brackets doesn't match");
         }
         return $currentString;
+    }
+
+    protected function processRegex($path) {
+        /**
+         * if there are urlencoded slashes in the path they could cause a problems.
+         * So replace them with something unique so after rawurldecode we can distinguish
+         * actual slashes from those being encoded.
+         */
+
+        $slashPlaceholder = null;
+        if (strpos($path, '%2F')) {
+            $i = 0;
+            do {
+                $slashPlaceholder = 's42' . $i;
+                $i++;
+
+                $isUnique = strpos($path, $slashPlaceholder) === false;
+                $isUnique = $isUnique && strpos($this->compiledRegex, $slashPlaceholder) === false;
+
+            } while (!$isUnique);
+            $path = str_replace('%2F', $slashPlaceholder, $path);
+        }
+
+        $path = rawurldecode($path);
+
+        $regex = "(^" . $this->compiledRegex . "$)";
+
+
+        if (preg_match($regex, $path, $matches)) {
+            $resultParams = [];
+            foreach ($matches as $paramName => $paramValue) {
+                if (!is_int($paramName) && $paramValue !== '') {
+                    if (!is_null($slashPlaceholder)) {
+                        $paramValue = str_replace($slashPlaceholder, '/', $paramValue);
+                    }
+                    $resultParams[$paramName] = $paramValue;
+                }
+            }
+            return $resultParams;
+        } else {
+            return null;
+        }
+    }
+
+    public function makePath(array $urlParameters): string {
+        return $this->pathGenerator->makePath($urlParameters);
     }
 
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Fastero\Router\Configuration;
 
 
@@ -6,19 +7,19 @@ use Fastero\Router\Exception\ConfigurationException;
 
 abstract class AbstractGenerator
 {
+    protected static $instance = null;
     protected $resultData = [];
     protected $reset = true;
-    protected static $instance = null;
 
     /**
      * @return static
      */
-    protected static function getInstance(){
-        if(is_null(static::$instance)){
+    protected static function getInstance() {
+        if (is_null(static::$instance)) {
             static::$instance = new static();
         }
 
-        if(!static::$instance->reset){
+        if (!static::$instance->reset) {
             throw  new ConfigurationException("Finish previous configuration before starting new one");
         }
         static::$instance->reset = false;
