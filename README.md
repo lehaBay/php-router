@@ -53,6 +53,13 @@ try{
 ```$routes``` array contain's route names as keys and configuration parameters array as value. 
 It's recommended to generate configuration using [Configurators](#configurators) 
 
+And to use reverse routing (path generation):
+```php
+$router->makePath('admin-user-name', ['name' => 'nobody']) // will return string "admin/user/nobody"
+
+```
+See [Generate path](#generate-path)
+
 ## Configurators
 Configurators are created to make configuration of your route easier 
 and prevent you from making mistakes. 
@@ -63,14 +70,14 @@ of objects while being used. This method has some limitations
 but it has much less overhead and almost as fast as using simple arrays and 
 speed is a main goal of this library.
 
-To start configuring route you must call static method ::configure on 
+To start configuring route you must call static method ```::configure``` on 
 appropriate Configurator. This method usually has two parameters 
 ```$staticPrefix``` and ```$pattern```. Example:
-$routeConfigure = Section::config('user/', 'id/:user_id')
+```$routeConfigure = Section::config('user/', 'id/:user_id')```
 
-$routeConfigure now is a ```Section``` Object and other it's methods can be called
+```$routeConfigure``` now is a ```Section``` Object and other it's methods can be called
 to continue configuration and all of theme will return ```Section``` object
-and at the very end you *must call ```->get()``` method* which will return 
+and at the very end you **must call ```->get()``` method** which will return 
 array with all the configurations. So at the end it looks like:
 ```php
 $routes = [
@@ -114,13 +121,13 @@ Set rules for query parameter
 
 Currently there are 3 configurators (src/Configuration) 
 one per each [route type](#route-types):
-* \Fastero\Router\Configuration\Literal 
+* ```\Fastero\Router\Configuration\Literal ```
 \- corresponding the [\Fastero\Router\PathHandler\Literal](#literal)  route type
 
-* \Fastero\Router\Configuration\Section 
+* ```\Fastero\Router\Configuration\Section ```
 \- corresponding the [\Fastero\Router\PathHandler\Section](#section)  route type
 
-* \Fastero\Router\Configuration\Regex 
+* ```\Fastero\Router\Configuration\Regex ```
  \- corresponding the [\Fastero\Router\PathHandler\Regex](#regex)  route type
 
 All they have the same methods but slightly different signature for ::config() method. That's because
@@ -129,11 +136,11 @@ Literal route type does not need any path pattern but static path only
 ## Route types
 
 ### Literal 
-\Fastero\Router\PathHandler\Literal - Represents simple static path that has no parameters
+```\Fastero\Router\PathHandler\Literal``` - Represents simple static path that has no parameters
 like "admin/users", "article/list" etc. It's fastest route type and should be used whenever possible
 
 ### Regex 
-\Fastero\Router\PathHandler\Regex - Represents Regular Expression route type. It's requires a regular expression 
+```\Fastero\Router\PathHandler\Regex``` - Represents Regular Expression route type. It's requires a regular expression 
 (in the format that preg_match can execute without delimiters and "^"""$" operators as they included automatically ) 
 with named parameters e.g.: ```user/age(?<age>([0-9])+)```.
 
@@ -141,13 +148,48 @@ It's recommended to make regex as simple as possible and use validators
 if you need to validate parameters rather than include all the validation in the regex.
 
 ### Section
-* \Fastero\Router\PathHandler\Section - This is route in format like 
+* ```\Fastero\Router\PathHandler\Section``` - This is route in format like 
 ```some/path/parameter/:parameter_name[optional-parameter/:optional_parameter_name]```
 
 and ```some/path/parameter/``` here is a static prefix 
 or just ```some/path/``` - more unique prefix is better but 
 sometimes it's more important to be looking good and readable.
+
+so this type of route uses "/" to delimit parameters and ":" to define parameter
+"[", "]" - to define optional parameter. 
+
+More examples (with static prefixes as they should be used. 
+You may think about if like it's a single concat string):
+
+```'news/', ':tag[/author/:author_name]' ```
+* tag - is required parameter
+* author_name - is optional
+this will match following paths:
+'news/politics', 'news/local/author/Grou'
+
+```'realty/', ":city[/price/:from/:to][/street/:street_name][/floor[/from/:from][/to/:to]]"```
+## Generate path
+Currently there are two path generators:
+* ```\Fastero\Router\PathHandler\Literal``` - which is also a path handler. This generator
+will simply return path.
+
+* ```\Fastero\Router\PathHandler\SectionPathGenerator``` - it uses the same 
+format as a \Fastero\Router\PathHandler\SectionPathMatcher and is a default
+generator for this matcher.
+
+Format:
+ ```section/:sectionName/[/filter[/id/:id][/name/:name]]```
  
+ * [] - optional section, will be generated only if any parameter inside is set
+ * :id - parameter name - will be replaced with actual parameter if given.
+ [a-zA-Z_0-9] characters are allowed, started with [a-zA-Z_]
+ * characters '[', ']', ':' - can be escaped with '\' if meant as literals
+ 
+Examples:
+ * ```news/:id```  - "id" is required parameter
+ * ```news[/:author[/:year\::month\::day]```  - 
+ 'author' and 'year', 'month', 'day' are optional. Results: ```news/alexey/1989:08:1987```, ```news/alexey```, ```news```
+
 # Why is it fast?
 There are two factors - first it uses native array as a configuration and 
 does not create an object for every route. Even though creating a few objects 
@@ -160,5 +202,7 @@ Some other libraries are doing the same but they trying to figure out prefixes
 by itself and in order for this to be efficient you would need use cache. 
 While using cache is not a bad thing to do usually you want your app to be fast
 enough without cache and then make it even faster with cache.
+
+
 
 MIT Licensed, http://www.opensource.org/licenses/MIT
