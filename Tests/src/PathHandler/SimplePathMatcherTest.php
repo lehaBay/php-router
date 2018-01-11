@@ -193,7 +193,43 @@ class SimplePathMatcherTest extends TestCase
         $result = $matcher->match('news/[5der]');
         $this->assertEquals(['_id52' => '5der'], $result);
     }
+    public function testMatchTwoParametersInOptionalBothGiven() {
+        $routeOptions = [
+            "rule" => ['news', '[/optional/:some/:another]'],
+        ];
 
+        $matcher = new SectionPathMatcher();
+        $matcher->setOptions($routeOptions);
+
+        $result = $matcher->match('news/optional/firstParam/secondParam');
+        $this->assertSame(['some' => 'firstParam', 'another' => 'secondParam'], $result);
+
+    }
+
+    public function testMatchTwoParametersInOptionalGroupOneGiven() {
+        $routeOptions = [
+            "rule" => ['news', '[/optional/:some/:another]'],
+        ];
+
+        $matcher = new SectionPathMatcher();
+        $matcher->setOptions($routeOptions);
+
+        $result = $matcher->match('news/optional/firstParam');
+        $this->assertNull($result);
+
+    }
+    public function testMatchTwoParametersInOptionalGroupNoneGiven() {
+        $routeOptions = [
+            "rule" => ['news', '[/optional/:some/:another]'],
+        ];
+
+        $matcher = new SectionPathMatcher();
+        $matcher->setOptions($routeOptions);
+
+        $result = $matcher->match('news');
+        $this->assertSame([],$result);
+
+    }
 
     public function testMatchMissingCloseBracket() {
         $routeOptions = [

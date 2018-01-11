@@ -31,7 +31,7 @@ use Fastero\Router\Exception\ParseException;
  *
  */
 
-class SimplePathGenerator implements GeneratorInterface
+class SectionPathGenerator implements GeneratorInterface
 {
 
 

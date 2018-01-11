@@ -25,14 +25,14 @@ class SectionPathMatcher extends AbstractMatcher implements GeneratorInterface
     ];
 
     /**
-     * @var SimplePathGenerator
+     * @var SectionPathGenerator
      */
     protected $pathGenerator;
 
     protected $compiledRegex;
 
     public function __construct($pathGenerator = null) {
-        $this->pathGenerator = $pathGenerator ?? new SimplePathGenerator();
+        $this->pathGenerator = $pathGenerator ?? new SectionPathGenerator();
     }
 
     public function setOptions(array $options) {

@@ -12,7 +12,7 @@ namespace Fastero\Router\Tests;
 use Fastero\Router\Exception\GeneratorException;
 use Fastero\Router\Exception\ParseException;
 use Fastero\Router\PathHandler\Regex;
-use Fastero\Router\PathHandler\SimplePathGenerator;
+use Fastero\Router\PathHandler\SectionPathGenerator;
 use Fastero\Router\Router;
 use PHPUnit\Framework\TestCase;
 
@@ -24,7 +24,7 @@ class SimplePathGeneratorTest extends TestCase
 
            "reverse" => ['path' =>"news/:id"]
      ];
-     $generator = new SimplePathGenerator();
+     $generator = new SectionPathGenerator();
 
      $generator->setOptions($routeOptions);
 
@@ -37,7 +37,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news(:id) _-~\[\]="]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -51,7 +51,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news[/:id]"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -67,7 +67,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news[/:id]"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -83,7 +83,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"[news/:id]"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -95,7 +95,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"[news/:id]"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -109,7 +109,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news[/author[/id=:id][/name=:name]]"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -124,7 +124,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news[/author[/id=:id][/name=:name]]"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -137,7 +137,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news[/author[/id=:id][/name=:name]]"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -155,7 +155,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => []
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
 
@@ -172,7 +172,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news/:5d"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
         $generator->makePath([]);
@@ -186,7 +186,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news\\"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
         $generator->makePath([]);
@@ -201,7 +201,7 @@ class SimplePathGeneratorTest extends TestCase
 
             "reverse" => ['path' =>"news]"]
         ];
-        $generator = new SimplePathGenerator();
+        $generator = new SectionPathGenerator();
 
         $generator->setOptions($routeOptions);
         $generator->makePath([]);
